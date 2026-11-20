@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 
 const isProtected = createRouteMatcher(["/cuenta(.*)", "/api/me(.*)"]);
 
@@ -9,16 +9,15 @@ const withClerk = clerkMiddleware(async (auth, request) => {
   }
 });
 
-// Keep the planner public if Clerk credentials have not yet been configured.
-// This is an installation fallback, not an authentication bypass for protected user data.
-export default function proxy(request: NextRequest) {
+// Public planner remains available until an existing Clerk app is configured.
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
   if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
     if (isProtected(request)) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
-  return withClerk(request, {} as never);
+  return withClerk(request, event);
 }
 
 export const config = {
