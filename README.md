@@ -1,24 +1,38 @@
-# Corona Capital Planner 2026
+# Corona Capital 2026 — Clerk + Next.js
 
-Planner interactivo para el viernes 20 de noviembre de 2026 en Ciudad de México.
+Migración del planner HTML estático a Next.js 16 con autenticación Clerk **sin perder la experiencia pública del festival**.
 
-## Uso
+## Estado
 
-Abre `index.html` en el navegador, o visita el despliegue publicado en Vercel.
+- Planner público y funcional en `public/planner.html` (mapa y datos embebidos).
+- Navegación con **Iniciar sesión / Crear cuenta / Mi perfil / Cerrar sesión** mediante Clerk.
+- Ruta de perfil protegida `/cuenta` y API autenticada `/api/me`.
+- Si Clerk aún no tiene claves configuradas, funciona en **modo local** y no afirma que el usuario esté conectado.
+- **No hay sincronización de selecciones entre personas todavía**. Las bandas se guardan en localStorage; conectar Convex es un paso independiente.
 
-- Selección de artistas y recomendaciones por estilo.
-- Agenda y detección de empalmes.
-- Estrategias para combinar Gorillaz y Jamie xx.
-- Ruta animada por tramos sobre el mapa del festival 2026.
-- Puntos de encuentro y visualización por escenario.
-- Preferencias guardadas localmente en el navegador.
+## Clerk existente — no crear otra aplicación
 
-## Limitaciones actuales
+Aplicación ya elegida: `app_3MMGmQkuzWYrhGiKCnCqvAUXpST`.
 
-Esta es una aplicación HTML autónoma. El perfil local **no** es una cuenta en línea. El inicio de sesión con Clerk y la sincronización multiusuario con Convex **no están activados**; requieren un despliegue separado del proyecto Next.js y configurar los servicios externos.
+Configura las variables en **Vercel > Project > Settings > Environment Variables**, o desde la integración con la aplicación Clerk existente:
 
-Los tiempos de traslado son estimaciones, no navegación GPS; respeta los recorridos y accesos reales del festival.
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+```
 
-## Deploy
+La clave secreta es **solo de servidor**; no la cometas a GitHub ni la pegues en el chat. Si usas el CLI de Clerk, autentícate en tu terminal y selecciona la app existente; no ejecutes `clerk init` si ya está vinculada. Los dominios autorizados deben incluir la URL de producción en Vercel.
 
-La versión estática se puede desplegar en Vercel con el directorio raíz del repositorio y Framework Preset: **Other**. Vercel sirve `index.html` como página principal.
+## Activación
+
+1. `npm install` con Node.js 20.9 o superior.
+2. Configura las variables de Clerk y `npm run dev` para probar el registro.
+3. `npm run check` y `npm run build`.
+4. Ajusta el proyecto Vercel existente para **Next.js**, conserva su URL y añade las mismas variables en Production y Preview.
+5. Fusiona esta rama en `main` solamente cuando la compilación y el login estén verificados.
+
+## Nota sobre las selecciones
+
+Clerk identifica personas y protege sesiones. Para compartir y sincronizar itinerarios entre dispositivos hace falta una base de datos compartida (por ejemplo Convex), no basta Clerk.
